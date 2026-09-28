@@ -271,7 +271,7 @@ export const getRoomState = createServerFn({ method: "POST" })
     }
     // Halat her zaman cevap geçmişinden türetilir; kayıtlı değer geride kaldıysa düzeltilir
     if (derivedRope !== room.rope_position && room.status !== "FINISHED") {
-      void supabase.from("rooms").update({ rope_position: derivedRope }).eq("id", room.id);
+      await supabase.from("rooms").update({ rope_position: derivedRope }).eq("id", room.id);
     }
 
     return {
