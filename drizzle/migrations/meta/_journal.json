@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790525608462,
+      "tag": "0000_initial_game_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790586439883,
+      "tag": "0001_e014d999_6605_4873_a8fa_37bc0f100555",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790586453769,
+      "tag": "0002_c829314d_c32a_420d_ba1b_0cbdf449a2c3",
+      "breakpoints": true
+    }
+  ]
+}
