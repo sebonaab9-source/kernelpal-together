@@ -156,7 +156,7 @@ function GameView({ code, playerId }: { code: string; playerId: string }) {
   const q = data?.question ?? null;
   const me = data?.players.find((p) => p.id === playerId);
 
-  if (isError)
+  if (isError && !data)
     return (
       <Shell>
         <p className="text-center font-semibold text-foreground">Bağlantı yeniden kuruluyor...</p>
