@@ -10,8 +10,12 @@ export function useGameState(code: string, playerId?: string) {
   const query = useQuery<RoomState>({
     queryKey: ["room", code, playerId ?? "host"],
     queryFn: () => fetchState({ data: { code, playerId } }),
-    refetchInterval: 100,
-    retry: 1,
+    refetchInterval: 400,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    placeholderData: (prev) => prev,
+    retry: 5,
+    retryDelay: 300,
   });
 
   useEffect(() => {

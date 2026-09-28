@@ -112,7 +112,7 @@ function HostScreen() {
 
   const act = (action: string) => void control({ data: { code, action } }).then(() => refetch());
 
-  if (isError)
+  if (isError && !data)
     return (
       <main className="flex min-h-screen items-center justify-center bg-background">
         <p className="text-lg font-bold text-foreground">Bağlantı yeniden kuruluyor...</p>

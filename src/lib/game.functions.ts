@@ -237,6 +237,7 @@ export const getRoomState = createServerFn({ method: "POST" })
 
     // Puan: turu ilk doğru bilen takım 2, aynı anda (kısa süre içinde) bilen diğer takım 1 puan
     const scores: { 1: number; 2: number } = { 1: 0, 2: 0 };
+    let derivedRope = 0;
     const roundOf = new Map<string, number>(
       questionIds.map((id, i) => [id, Math.floor(i / 2)]),
     );
@@ -257,11 +258,26 @@ export const getRoomState = createServerFn({ method: "POST" })
       // Aynı anda bilindiyse kimse puan almaz (halat sabit); değilse yalnızca ilk doğru puan alır
       if (!simultaneous && (firstTeam === 1 || firstTeam === 2)) scores[firstTeam] += FIRST_POINTS;
     }
+    for (const [, list] of [...byRound.entries()].sort((a, b) => a[0] - b[0])) {
+      const firstTeam = teamOf.get(list[0]!.player_id);
+      const t0 = Date.parse(list[0]!.created_at);
+      const simultaneous = list.some(
+        (a) => teamOf.get(a.player_id) !== firstTeam && Date.parse(a.created_at) - t0 <= SAME_TIME_MS,
+      );
+      if (simultaneous) continue;
+      if (firstTeam === 1) derivedRope -= STEP;
+      else if (firstTeam === 2) derivedRope += STEP;
+      derivedRope = Math.max(-WIN_LIMIT, Math.min(WIN_LIMIT, derivedRope));
+    }
+    // Halat her zaman cevap geçmişinden türetilir; kayıtlı değer geride kaldıysa düzeltilir
+    if (derivedRope !== room.rope_position && room.status !== "FINISHED") {
+      await supabase.from("rooms").update({ rope_position: derivedRope }).eq("id", room.id);
+    }
 
     return {
       code: room.room_code,
       status: room.status as RoomStatus,
-      ropePosition: room.rope_position,
+      ropePosition: room.status === "FINISHED" ? room.rope_position : derivedRope,
       winner: room.winner,
       players: (players ?? []).map((p: any) => ({
         id: p.id,
@@ -375,7 +391,7 @@ export const submitAnswer = createServerFn({ method: "POST" })
         byRound.set(r, [...(byRound.get(r) ?? []), a]);
       }
       let rope = 0;
-      for (const list of byRound.values()) {
+      for (const [, list] of [...byRound.entries()].sort((a, b) => a[0] - b[0])) {
         list.sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
         const firstTeam = teamMap.get(list[0]!.player_id);
         const t0 = Date.parse(list[0]!.created_at);
@@ -385,8 +401,9 @@ export const submitAnswer = createServerFn({ method: "POST" })
         if (simultaneous) continue; // aynı anda: halat sabit
         if (firstTeam === 1) rope -= STEP;
         else if (firstTeam === 2) rope += STEP;
+        // Her adımda sınırla: sınırda takılı kalıp karşı takımın çekişini yutmasın
+        rope = Math.max(-WIN_LIMIT, Math.min(WIN_LIMIT, rope));
       }
-      rope = Math.max(-WIN_LIMIT, Math.min(WIN_LIMIT, rope));
       await supabase.from("rooms").update({ rope_position: rope }).eq("id", room.id);
     }
 
