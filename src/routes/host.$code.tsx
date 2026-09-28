@@ -206,14 +206,49 @@ function HostScreen() {
               </div>
             </section>
           ) : data.status === "FINISHED" ? (
-            <section className="py-6 text-center">
-              <ScoreHeader scores={data.scores} players={data.players} elapsed={elapsed} />
+            <section
+              className={
+                isFullscreen ? "flex h-dvh flex-col px-4 pt-3 pb-3 text-center" : "py-4 text-center"
+              }
+            >
+              <div className="relative z-20 grid grid-cols-2 gap-3 sm:gap-6">
+                {([1, 2] as const).map((t) => {
+                  const p = data.players.find((x) => x.team === t);
+                  return (
+                    <div
+                      key={t}
+                      className="rounded-2xl border-2 border-border bg-background px-4 py-3 shadow-[var(--shadow-panel)]"
+                    >
+                      <p
+                        className={`truncate text-sm font-bold tracking-wider sm:text-lg ${t === 1 ? "text-team1" : "text-team2"}`}
+                      >
+                        {p?.name ? p.name.toUpperCase() : `TAKIM ${t}`}
+                      </p>
+                      <p className="text-3xl font-extrabold text-foreground sm:text-5xl">
+                        {data.scores?.[t] ?? 0}
+                        <span className="ml-2 text-sm font-semibold text-muted-foreground sm:text-base">
+                          DOĞRU
+                        </span>
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
               {/* Halat ve oyuncular yerinde sabit kalır; kazanan duyurusu üzerine bindirilir */}
-              <div className="relative mt-2">
-                <TugOfWarArena ropePosition={data.ropePosition} />
+              <div
+                className={
+                  isFullscreen
+                    ? "relative mt-3 flex min-h-0 flex-1 items-center justify-center"
+                    : "relative mt-3"
+                }
+              >
+                <TugOfWarArena
+                  ropePosition={data.ropePosition}
+                  fit={isFullscreen ? "height" : "width"}
+                />
                 <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center">
                   <div className="pointer-events-auto">
-                    <WinnerBanner winner={data.winner} players={data.players} />
+                    <WinnerBanner winner={data.winner} players={data.players} compact={isFullscreen} />
                   </div>
                 </div>
               </div>
